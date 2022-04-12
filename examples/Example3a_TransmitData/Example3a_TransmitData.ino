@@ -11,7 +11,7 @@
  */
 #include <stdbool.h>
 #include "Sparkfun_SinglePair_Ethernet.h"
-#include "SparkFunBME280.h"
+//#include "SparkFunBME280.h"
 /* Extra 4 bytes for FCS and 2 bytes for the frame header */
 #define MAX_FRAME_BUF_SIZE  (MAX_FRAME_SIZE + 4 + 2)
 #define MIN_PAYLOAD_SIZE    (46)
