@@ -66,10 +66,6 @@ adi_eth_Result_e adin1110_Init(adin1110_DeviceHandle_t hDevice, adin1110_DriverC
         result = ADI_ETH_INVALID_PARAM;
         goto end;
     }
-    else
-    {
-        // DEBUG_MESSAGE("device memory valid");
-    }
 
     hDevice->pUserContext = NULL;
 

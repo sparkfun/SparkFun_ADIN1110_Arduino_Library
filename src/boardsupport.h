@@ -27,6 +27,10 @@
 #define DEFAULT_ETH_SPI_CS_Pin SS
 #endif
 
+//STM32
+// INT_PIN D0: 0
+// ETH_RESET G2: 8
+// DEFAULT_ETH_SPI_CS_Pin CS: 29
 
 // #include "stm32l4xx_hal.h"
 // #include "stm32l4xx_it.h"
