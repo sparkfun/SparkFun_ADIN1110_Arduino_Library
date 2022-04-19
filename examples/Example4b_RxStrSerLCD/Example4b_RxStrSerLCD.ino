@@ -84,10 +84,6 @@ void cbLinkChange(void *pCBParam, uint32_t Event, void *pArg)
 void setup() 
 {
     adi_eth_Result_e        result;
-    uint32_t                error;
-    adin1110_DeviceStruct_t dev;
-    adin1110_DeviceHandle_t hDevice = &dev;
-    uint32_t                heartbeatCheckTime = 0;
     Wire.begin();
     
     lcd.begin(Wire); //Set up the LCD for I2C communication

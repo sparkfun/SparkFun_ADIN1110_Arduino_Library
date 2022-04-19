@@ -124,10 +124,6 @@ void cbLinkChange(void *pCBParam, uint32_t Event, void *pArg)
 void setup() 
 {
     adi_eth_Result_e        result;
-    uint32_t                error;
-    adin1110_DeviceStruct_t dev;
-    adin1110_DeviceHandle_t hDevice = &dev;
-    uint32_t                heartbeatCheckTime = 0;
     Serial.begin(115200);
     while (!Serial) {
       ; // wait for serial port to connect. Needed for native USB port only
