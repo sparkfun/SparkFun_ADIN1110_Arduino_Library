@@ -85,7 +85,8 @@ extern "C" {
 #endif
 
 /*! Size of the MAC device structure, in bytes. Needs to be a multiple of 4. Note the actual size will depend on packing of non-uint32_t members.*/
-#define ADI_MAC_DEVICE_SIZE             (ADI_MAC_DEVICE_SIZE_COMMON + ADI_MAC_DEVICE_SIZE_QUEUE_HI + ADI_MAC_DEVICE_SIZE_OA)
+// #define ADI_MAC_DEVICE_SIZE             (ADI_MAC_DEVICE_SIZE_COMMON + ADI_MAC_DEVICE_SIZE_QUEUE_HI + ADI_MAC_DEVICE_SIZE_OA)
+#define ADI_MAC_DEVICE_SIZE             sizeof(adi_mac_Device_t)
 
 /*! MAC address filter table entries that allow usage of a mask. */
 #define ADI_MAC_ADDR_MASK_MAX           (2)
@@ -600,7 +601,7 @@ typedef struct
 /*!
  * @brief Device descriptor structure.
  */
-typedef struct
+typedef struct 
 {
     volatile adi_mac_State_e        state;                                      /*!< MAC state.                                             */
     volatile adi_mac_SpiState_e     spiState;                                   /*!< SPI state.                                             */
