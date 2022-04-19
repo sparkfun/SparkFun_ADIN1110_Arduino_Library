@@ -33,6 +33,29 @@ adi_eth_Result_e SinglePair_Eth::begin(uint8_t cs_pin)
     return result;
 }
 
+adi_eth_Result_e SinglePair_Eth::begin(uint8_t status, uint8_t interrupt, uint8_t reset, uint8_t chip_select)
+{
+    adi_eth_Result_e result;
+    BSP_ConfigSystem(status, interrupt, reset, chip_select);
+    if(BSP_InitSystem())
+    {
+        return ADI_ETH_DEVICE_UNINITIALIZED;
+    }
+
+    BSP_HWReset(true);
+
+    for (uint32_t i = 0; i < ADIN1110_INIT_ITER; i++)
+    {
+        result = init(&drvConfig);
+        if (result == ADI_ETH_SUCCESS)
+        {
+            break;
+        }
+    }
+
+    return result;
+}
+
 adi_eth_Result_e    SinglePair_Eth::init                    (adin1110_DriverConfig_t *pCfg)
 {
     return adin1110_Init(hDevice, pCfg);

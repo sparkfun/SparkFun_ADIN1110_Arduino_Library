@@ -22,6 +22,7 @@ private:
 public:
     //Device status
     adi_eth_Result_e    begin                   (uint8_t cs_pin = DEFAULT_ETH_SPI_CS_Pin);
+    adi_eth_Result_e    begin                   (uint8_t status, uint8_t interrupt, uint8_t reset, uint8_t chip_select);
     adi_eth_Result_e    init                    (adin1110_DriverConfig_t *pCfg);
     adi_eth_Result_e    unInit                  (void);
     adi_eth_Result_e    getDeviceId             (adin1110_DeviceId_t *pDevId);
