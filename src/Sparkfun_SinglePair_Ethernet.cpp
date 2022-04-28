@@ -56,7 +56,7 @@ adi_eth_Result_e SinglePair_Eth::begin(uint8_t status, uint8_t interrupt, uint8_
     return result;
 }
 
-adi_eth_Result_e    SinglePair_Eth::init                    (adin1110_DriverConfig_t *pCfg)
+adi_eth_Result_e    SinglePair_Eth::init                    (adin1110_DriverConfig_t *pCfg) 
 {
     return adin1110_Init(hDevice, pCfg);
 }

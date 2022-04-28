@@ -16,34 +16,48 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define DEFAULT_ETH_INT_Pin D0
-#define DEFAULT_ETH_RESET_Pin G2
 // #define DEFAULT_ETH_INT_Pin 4
 // #define DEFAULT_ETH_RESET_Pin 42
-#if defined(ARDUINO_ARCH_APOLLO3)
+// #define ETH_SPI_CS_Pin PIN_SPI_SS
+
+#if defined(ARDUINO_APOLLO3_SFE_ARTEMIS_MM_PB)
+#define DEFAULT_ETH_INT_Pin D0
+#define DEFAULT_ETH_RESET_Pin G2
 #define DEFAULT_ETH_SPI_CS_Pin SPI_CS
-#else
-//#define ETH_SPI_CS_Pin PIN_SPI_SS
+#endif
+
+#if defined(ARDUINO_ESP32_MICROMOD)
+#define DEFAULT_ETH_INT_Pin D0
+#define DEFAULT_ETH_RESET_Pin G2
 #define DEFAULT_ETH_SPI_CS_Pin SS
 #endif
 
-//STM32
-// INT_PIN D0: 0
-// ETH_RESET G2: 8
-// DEFAULT_ETH_SPI_CS_Pin CS: 29
+#if defined(ARDUINO_MICROMOD_F405)
+#define DEFAULT_ETH_INT_Pin 0
+#define DEFAULT_ETH_RESET_Pin 8
+#define DEFAULT_ETH_SPI_CS_Pin 29
+#endif
 
-// #include "stm32l4xx_hal.h"
-// #include "stm32l4xx_it.h"
-// #include "stm32l4xx_ll_dma.h"
-// #include "stm32l4xx_ll_spi.h"
+#if defined(ARDUINO_SPARKFUN_THINGPLUS_RP2040) || defined(ARDUINO_SPARKFUN_MICROMOD_RP2040)
+#define DEFAULT_ETH_INT_Pin 6
+#define DEFAULT_ETH_RESET_Pin 18
+#define DEFAULT_ETH_SPI_CS_Pin 21
+#endif
 
-// #include "bsp_config.h"
-// #include "bsp_def.h"
-// #include "dma.h"
-// #include "spi.h"
-// #include "usart.h"
-// #include "gpio.h"
-// #include "sysclock.h"
+#if !defined(DEFAULT_ETH_INT_Pin)
+  #pragma message("No DEFAULT_ETH_INT_Pin defined, please set in being function")
+  #define DEFAULT_ETH_INT_Pin 0
+#endif
+
+#if !defined(DEFAULT_ETH_RESET_Pin)
+  #pragma message("No DEFAULT_ETH_INT_Pin defined, please set in being function")
+  #define DEFAULT_ETH_RESET_Pin 0
+#endif
+
+#if !defined(DEFAULT_ETH_SPI_CS_Pin)
+  #pragma message("No DEFAULT_ETH_INT_Pin defined, please set in being function")
+  #define DEFAULT_ETH_SPI_CS_Pin 0
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,7 +65,6 @@ extern "C" {
 
 /* Buffer for debug messages written to UART. */
 extern char aDebugString[150u];
-
 void common_Fail(char *FailureReason);
 void common_Perf(char *InfoString);
 
@@ -78,6 +91,8 @@ typedef void (* ADI_CB) (  /*!< Callback function pointer */
     void      *pArg);            /*!< Pointer to the event specific argument */
 
 /*Functions prototypes*/
+//These function names are provided by the driver provided by analog devices
+//No changes were made to the API provided by this module, functions that dont make sense are left blank
 uint32_t        BSP_InitSystem                  (void);
 uint32_t        BSP_ConfigSystem                (uint8_t status, uint8_t interrupt, uint8_t reset, uint8_t chip_select);
 uint32_t        BSP_ConfigSystemCS              (uint8_t chip_select);

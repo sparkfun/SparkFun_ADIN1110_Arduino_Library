@@ -5,8 +5,6 @@
 #include <Arduino.h>
 #include "adin1110.h"
 
-
-
 class SinglePair_Eth
 {
 private:
