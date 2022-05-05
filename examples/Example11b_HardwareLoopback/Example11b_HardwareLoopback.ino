@@ -9,7 +9,7 @@
  *---------------------------------------------------------------------------
  */
 #include <stdbool.h>
-#include "Sparkfun_SinglePair_Ethernet.h"
+#include "Sparkfun_SinglePairEth_Raw.h"
 #include <SPI.h>
 // #include "boardsupport.h"
 
@@ -37,7 +37,7 @@ uint8_t macAddr[2][6] = {
     {MAC_ADDR_1_0, MAC_ADDR_1_1, MAC_ADDR_1_2, MAC_ADDR_1_3, MAC_ADDR_1_4, MAC_ADDR_1_5},
 };
 
-SinglePair_Eth adin1110;
+SinglePairEth_Raw adin1110;
 
 /* Example configuration */
 uint32_t heartbeatCheckTime = 0;

@@ -1,11 +1,16 @@
-#ifndef __Sparkfun_TwoWire_Ethernet_H__
-#define __Sparkfun_TwoWire_Ethernet_H__
+#ifndef __Sparkfun_SinglePairEth_Raw__
+#define __Sparkfun_SinglePairEth_Raw__
 
 #include <SPI.h>
-#include <Arduino.h>
 #include "adin1110.h"
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
 
-class SinglePair_Eth
+
+class SinglePairEth_Raw
 {
 private:
     uint8_t devMem[ADIN1110_DEVICE_SIZE];
@@ -14,8 +19,7 @@ private:
         .devMemSize = sizeof(devMem),
         .fcsCheckEn = false,
     };
-    adin1110_DeviceStruct_t dev;
-    adin1110_DeviceHandle_t hDevice = &dev;
+
 
 public:
     //Device status
@@ -82,6 +86,9 @@ public:
     adi_eth_Result_e    frameChkReadFrameCnt    (uint32_t *cnt);
     adi_eth_Result_e    frameChkReadRxErrCnt    (uint16_t *cnt);
     adi_eth_Result_e    frameChkReadErrorCnt    (adi_phy_FrameChkErrorCounters_t *cnt);
+
+    adin1110_DeviceStruct_t dev;
+    adin1110_DeviceHandle_t hDevice = &dev;
 };
 
 #endif

@@ -9,7 +9,7 @@
  *---------------------------------------------------------------------------
  */
 #include <stdbool.h>
-#include "Sparkfun_SinglePair_Ethernet.h"
+#include "Sparkfun_SinglePairEth_Raw.h"
 
 /* Extra 4 bytes for FCS and 2 bytes for the frame header */
 #define MAX_FRAME_BUF_SIZE  (MAX_FRAME_SIZE + 4 + 2)
@@ -39,7 +39,7 @@ uint8_t macAddr[2][6] = {
 
 #define ADIN1110_INIT_ITER  (5)
 
-SinglePair_Eth adin1110;
+SinglePairEth_Raw adin1110;
 
 void setup() 
 {

@@ -1,3 +1,4 @@
+
 /*
  *---------------------------------------------------------------------------
  *
@@ -9,11 +10,10 @@
  *---------------------------------------------------------------------------
  */
 #include <stdbool.h>
-#include "Sparkfun_SinglePair_Ethernet.h"
+#include "Sparkfun_SinglePairEth_Raw.h"
 /* Extra 4 bytes for FCS and 2 bytes for the frame header */
 #define MAX_FRAME_BUF_SIZE  (MAX_FRAME_SIZE + 4 + 2)
-
-#define FRAME_HEADER_SIZE 14
+#define MIN_PAYLOAD_SIZE    (46)
 
 #define MAC_ADDR_0_0        (0x00)
 #define MAC_ADDR_0_1        (0xE0)
@@ -34,20 +34,56 @@ uint8_t macAddr[2][6] = {
     {MAC_ADDR_1_0, MAC_ADDR_1_1, MAC_ADDR_1_2, MAC_ADDR_1_3, MAC_ADDR_1_4, MAC_ADDR_1_5},
 };
 
-SinglePair_Eth adin1110;
+#define FRAME_HEADER_SIZE 14
+
+uint8_t frame_header[FRAME_HEADER_SIZE] =
+{
+      MAC_ADDR_0_0, MAC_ADDR_0_1, MAC_ADDR_0_2, MAC_ADDR_0_3, MAC_ADDR_0_4, MAC_ADDR_0_5,
+      MAC_ADDR_1_0, MAC_ADDR_1_1, MAC_ADDR_1_2, MAC_ADDR_1_3, MAC_ADDR_1_4, MAC_ADDR_1_5,
+      0x08, 0x00,
+};
+
+SinglePairEth_Raw adin1110;
+uint8_t outputValue = 0; //just a number that we are going to increment that will rollover every 256 bytes
+
 
 /* Number of buffer descriptors to use for both Tx and Rx in this example */
 #define BUFF_DESC_COUNT     (6)
+#define FRAME_SIZE          (1518)
 
 HAL_ALIGNED_PRAGMA(4)
 static uint8_t rxBuf[BUFF_DESC_COUNT][MAX_FRAME_BUF_SIZE] HAL_ALIGNED_ATTRIBUTE(4);
 
+HAL_ALIGNED_PRAGMA(4)
+static uint8_t txBuf[BUFF_DESC_COUNT][MAX_FRAME_BUF_SIZE] HAL_ALIGNED_ATTRIBUTE(4);
+bool txBufAvailable[BUFF_DESC_COUNT];
+
 /* Example configuration */
+float reported_humidity;
+float reported_pressure;
+float reported_alt;
+float reported_temp;
+unsigned long last_report;
+unsigned long last_toggle;
 uint8_t sample_data_num = 0;
 uint8_t txBuffidx = 0;
+adi_eth_BufDesc_t       txBufDesc[BUFF_DESC_COUNT];
 adi_eth_BufDesc_t       rxBufDesc[BUFF_DESC_COUNT];
 
-#define PRINT_STRING
+static void txCallback(void *pCBParam, uint32_t Event, void *pArg)
+{
+    adi_eth_BufDesc_t       *pTxBufDesc;
+
+    pTxBufDesc = (adi_eth_BufDesc_t *)pArg;
+    /* Buffer has been written to the ADIN1110 Tx FIFO, we mark it available */
+    /* to re-submit to the Tx queue with updated contents. */
+    for (uint32_t i = 0; i < BUFF_DESC_COUNT; i++) {
+        if (&txBuf[i][0] == pTxBufDesc->pBuf) {
+            txBufAvailable[i] = true;
+            break;
+        }
+    }
+}
 
 static void rxCallback(void *pCBParam, uint32_t Event, void *pArg)
 {
@@ -56,17 +92,7 @@ static void rxCallback(void *pCBParam, uint32_t Event, void *pArg)
     uint32_t                idx;
 
     pRxBufDesc = (adi_eth_BufDesc_t *)pArg;
-
-    Serial.print("Recieved: ");
-    
-    for(int i = 0; i < (pRxBufDesc->trxSize - FRAME_HEADER_SIZE); i++)
-    {
-      Serial.print(pRxBufDesc->pBuf[i+FRAME_HEADER_SIZE]);
-      Serial.print(" ");
-    }
-
-    Serial.println();
-    
+ 
     /* Since we're not doing anything with the Rx buffer in this example, */
     /* we are re-submitting it to the queue. */
     adin1110.submitRxBuffer(pRxBufDesc);
@@ -93,6 +119,7 @@ void setup()
     while (!Serial) {
       ; // wait for serial port to connect. Needed for native USB port only
     }
+    
     /****** System Init *****/
     result = adin1110.begin();
     if(result != ADI_ETH_SUCCESS) Serial.println("No MACPHY device found");
@@ -113,7 +140,9 @@ void setup()
     /* Prepare Tx/Rx buffers */
     for (uint32_t i = 0; i < BUFF_DESC_COUNT; i++)
     {
-        //Submit All rx buffers
+        txBufAvailable[i] = true;
+
+        //Submit All rx buffersryzen
         rxBufDesc[i].pBuf = &rxBuf[i][0];
         rxBufDesc[i].bufSize = MAX_FRAME_BUF_SIZE;
         rxBufDesc[i].cbFunc = rxCallback;
@@ -125,10 +154,10 @@ void setup()
     if(result != ADI_ETH_SUCCESS) Serial.println("Device enable error");
 
     /* Wait for link to be established */
-    Serial.print("Device configured, waiting for connection...");
+    Serial.print("Device Configured, waiting for connection...");
     unsigned long prev = millis();
     unsigned long now;
-    while (linkStatus != ADI_ETH_LINK_STATUS_UP)
+    do
     {
         now = millis();
         if( (now - prev) >= 1000)
@@ -136,11 +165,64 @@ void setup()
           prev = now;
           Serial.print(".");
         }
-    }
+    } while (linkStatus != ADI_ETH_LINK_STATUS_UP);
 }
 
 void loop() {
-     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-     
-     delay(1000);
+
+    adi_eth_Result_e        result;
+    unsigned long now;
+
+    now = millis();
+    if(now-last_report >= 1000)
+    {
+      if (txBufAvailable[txBuffidx] && linkStatus == ADI_ETH_LINK_STATUS_UP)
+      {
+        uint8_t output_data[MAX_FRAME_BUF_SIZE]; //temporary buffer for building data that will be copied to global tx buffer
+                 
+        for(int i = 0; i < MIN_PAYLOAD_SIZE; i++)
+          output_data[i] = outputValue++;
+
+        last_report = now;
+        memcpy(&txBuf[txBuffidx][0], frame_header, FRAME_HEADER_SIZE);
+        memcpy(&txBuf[txBuffidx][FRAME_HEADER_SIZE], output_data, MIN_PAYLOAD_SIZE);
+
+        txBufDesc[txBuffidx].pBuf = &txBuf[txBuffidx][0];
+        txBufDesc[txBuffidx].trxSize = FRAME_HEADER_SIZE+MIN_PAYLOAD_SIZE;
+        txBufDesc[txBuffidx].bufSize = MAX_FRAME_BUF_SIZE;
+        txBufDesc[txBuffidx].egressCapt = ADI_MAC_EGRESS_CAPTURE_NONE;
+        txBufDesc[txBuffidx].cbFunc = txCallback;
+
+        txBufAvailable[txBuffidx] = false;
+        
+        result = adin1110.submitTxBuffer(&txBufDesc[txBuffidx]);
+        if (result == ADI_ETH_SUCCESS)
+        {
+            txBuffidx = (txBuffidx + 1) % BUFF_DESC_COUNT;
+        }
+        else
+        {
+            /* If Tx buffer submission fails (for example the Tx queue */
+            /* may be full), then mark the buffer unavailable.  */
+            txBufAvailable[txBuffidx] = true;
+        }
+      }
+      else if(linkStatus != ADI_ETH_LINK_STATUS_UP)
+      {
+        Serial.println("Waiting for link to resume sending");
+      }
+      else
+      {
+        Serial.println("All transmit buffers full");
+      }
+    }
+
+    now = millis();
+    if(now-last_toggle >= 1000)
+    {
+      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+      last_toggle = now;
+    }
+    
+    delay(100);
 }

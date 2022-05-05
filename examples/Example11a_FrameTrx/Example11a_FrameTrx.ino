@@ -9,7 +9,7 @@
  *---------------------------------------------------------------------------
  */
 #include <stdbool.h>
-#include "Sparkfun_SinglePair_Ethernet.h"
+#include "Sparkfun_SinglePairEth_Raw.h"
 // #include <SPI.h>
 // #include "boardsupport.h"
 
@@ -445,7 +445,7 @@ uint8_t testFrames[TEST_FRAMES_COUNT][MAX_FRAME_SIZE] =
 // uint8_t devMem[ADIN1110_DEVICE_SIZE];
 uint32_t heartbeatCheckTime = 0;
 
-SinglePair_Eth adin1110;
+SinglePairEth_Raw adin1110;
 
 // adin1110_DriverConfig_t drvConfig = {
 //     .pDevMem    = (void *)devMem,

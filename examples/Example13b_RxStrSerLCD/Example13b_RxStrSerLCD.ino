@@ -2,7 +2,7 @@
 
 
 #include <stdbool.h>
-#include "Sparkfun_SinglePair_Ethernet.h"
+#include "Sparkfun_SinglePairEth_Raw.h"
 #include <Wire.h>
 #include <SerLCD.h>
 /* Extra 4 bytes for FCS and 2 bytes for the frame header */
@@ -27,7 +27,7 @@ uint8_t macAddr[2][6] = {
     {MAC_ADDR_1_0, MAC_ADDR_1_1, MAC_ADDR_1_2, MAC_ADDR_1_3, MAC_ADDR_1_4, MAC_ADDR_1_5},
 };
 
-SinglePair_Eth adin1110;
+SinglePairEth_Raw adin1110;
 SerLCD lcd;
 
 /* Number of buffer descriptors to use for both Tx and Rx in this example */
@@ -52,14 +52,14 @@ static void rxCallback(void *pCBParam, uint32_t Event, void *pArg)
 
     pRxBufDesc = (adi_eth_BufDesc_t *)pArg;
 
-    Serial.print("Recieved: ");
-
-    Serial.printf((char *)&pRxBufDesc->pBuf[14]);
+//    Serial.print("Recieved: ");
+//
+//    Serial.printf((char *)&pRxBufDesc->pBuf[14]);
     memset(display_text, '\0', 100);
     strncpy(display_text, (char *)&pRxBufDesc->pBuf[14], 99);
     display_updated = true;
 
-    Serial.println();
+//    Serial.println();
     
     /* Since we're not doing anything with the Rx buffer in this example, */
     /* we are re-submitting it to the queue. */
@@ -70,24 +70,36 @@ volatile adi_eth_LinkStatus_e    linkStatus;
 void cbLinkChange(void *pCBParam, uint32_t Event, void *pArg)
 {
     linkStatus = *(adi_eth_LinkStatus_e *)pArg;
+    memset(display_text, '\0', 100);
     if(linkStatus ==ADI_ETH_LINK_STATUS_UP )
     {
-      lcd.print("Connected!\r\n");
+//      lcd.print("Connected!\r\n");
+        
+        strncpy(display_text, "\r\nConnected", 99);
+        
     }
     else
     {
-      lcd.clear();
-      lcd.print("Disconnected!\r\n");
+//      lcd.clear();
+//      lcd.print("Disconnected!\r\n");
+        strncpy(display_text, "Disconnected", 99);
     }
+    display_updated = true;
 }
 
 void setup() 
 {
     adi_eth_Result_e        result;
+    uint32_t                error;
+    adin1110_DeviceStruct_t dev;
+    adin1110_DeviceHandle_t hDevice = &dev;
+    uint32_t                heartbeatCheckTime = 0;
+    Wire.setSDA(4);
+    Wire.setSCL(5);
     Wire.begin();
-    
+    Wire.setClock(100000);
     lcd.begin(Wire); //Set up the LCD for I2C communication
-    Wire.setClock(400000);
+//    Wire.setClock(400000);
     lcd.clear(); //Clear the display - this moves the cursor to home position as well
     
     Serial.begin(115200);
@@ -95,7 +107,7 @@ void setup()
       ; // wait for serial port to connect. Needed for native USB port only
     }
     /****** System Init *****/
-    result = adin1110.begin();
+        result = adin1110.begin(LED_BUILTIN, 6, 18, 21);
     if(result != ADI_ETH_SUCCESS) Serial.println("No MACPHY device found");
     else Serial.println("Adin1110 found!");
 
@@ -157,5 +169,5 @@ void loop() {
         lcd.write((uint8_t *)&display_text[n], output_size);
        display_updated = false;
      }
-     delay(500);
+     delay(5);
 }
