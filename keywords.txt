@@ -1,0 +1,92 @@
+#########################################################
+# Syntax Coloring Map for SparkFun Single Pair Ethernet #
+#########################################################
+# Class
+#########################################################
+
+SinglePairEth	KEYWORD1
+SinglePairEth_Raw	KEYWORD1
+
+
+#########################################################
+# Methods and Functions
+#########################################################
+
+begin 	KEYWORD2
+sendData 	KEYWORD2
+getRxData 	KEYWORD2
+getRxAvailable 	KEYWORD2
+setRxCallback 	KEYWORD2
+setTxCallback 	KEYWORD2
+setLinkCallback 	KEYWORD2
+txCallback 	KEYWORD2
+rxCallback 	KEYWORD2
+linkCallback 	KEYWORD2
+txCallback_C_Compatible 	KEYWORD2
+rxCallback_C_Compatible 	KEYWORD2
+linkCallback_C_Compatible 	KEYWORD2
+linkStatus 	KEYWORD2
+
+init	KEYWORD2
+unInit	KEYWORD2
+getDeviceId	KEYWORD2
+enable	KEYWORD2
+disable	KEYWORD2
+reset	KEYWORD2
+syncConfig	KEYWORD2
+getLinkStatus	KEYWORD2
+getStatCounters	KEYWORD2
+ledEn	KEYWORD2
+setLoopbackMode	KEYWORD2
+setTestMode	KEYWORD2
+addAddressFilter	KEYWORD2
+clearAddressFilter	KEYWORD2
+submitTxBuffer	KEYWORD2
+submitRxBuffer	KEYWORD2
+submitRxBufferHp	KEYWORD2
+setPromiscuousMode	KEYWORD2
+getPromiscuousMode	KEYWORD2
+setChunkSize	KEYWORD2
+getChunkSize	KEYWORD2
+setCutThroughMode	KEYWORD2
+getCutThroughMode	KEYWORD2
+setFifoSizes	KEYWORD2
+getFifoSizes	KEYWORD2
+clearFifos	KEYWORD2
+tsEnable	KEYWORD2
+tsClear	KEYWORD2
+tsTimerStart	KEYWORD2
+tsTimerStop	KEYWORD2
+tsSetTimerAbsolute	KEYWORD2
+tsSyncClock	KEYWORD2
+tsGetExtCaptTimestamp	KEYWORD2
+tsGetEgressTimestamp	KEYWORD2
+tsConvert	KEYWORD2
+tsSubtract	KEYWORD2
+registerCallback	KEYWORD2
+setUserContext	KEYWORD2
+getUserContext	KEYWORD2
+writeRegister	KEYWORD2
+readRegister	KEYWORD2
+phyWrite	KEYWORD2
+phyRead	KEYWORD2
+getMseLinkQuality	KEYWORD2
+frameGenEn	KEYWORD2
+frameGenSetMode	KEYWORD2
+frameGenSetFrameCnt	KEYWORD2
+frameGenSetFramePayload	KEYWORD2
+frameGenSetFrameLen	KEYWORD2
+frameGenSetIfgLen	KEYWORD2
+frameGenRestart	KEYWORD2
+frameGenDone	KEYWORD2
+frameChkEn	KEYWORD2
+frameChkSourceSelect	KEYWORD2
+frameChkReadFrameCnt	KEYWORD2
+frameChkReadRxErrCnt	KEYWORD2
+frameChkReadErrorCnt	KEYWORD2
+
+#########################################################
+# Constants will do later
+#########################################################
+
+
