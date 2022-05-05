@@ -6,7 +6,7 @@
 std::map<adin1110_DeviceHandle_t, SinglePairEth *> SinglePairEth::devices;
 
 //The next three function are static member functions. Static member functions are needed to get a function
-//pointer that we can call in the C function that attaches the interrupt in the driver.
+//pointer that we can shove into the C function that attaches the interrupt in the driver.
 //The devices map is used to locate the appropriate object to call the desired non-static callback member
 //This is a bit of a hack, but it is the best I could come up with
 void SinglePairEth::linkCallback_C_Compatible(void *pCBParam, uint32_t Event, void *pArg)
