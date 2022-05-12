@@ -8,6 +8,11 @@
  *
  *---------------------------------------------------------------------------
  */
+/*
+ * This file has been ported from its original location to be included with
+ * the SparkFun ADIN1110 Arduino driver, file contents have been changed to
+ * give generic arduino board support
+*/
 
 #include "boardsupport.h"
 

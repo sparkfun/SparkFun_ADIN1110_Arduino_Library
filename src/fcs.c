@@ -7,6 +7,12 @@
 /**
   *  Portions Copyright (c) 2020, 2021 Analog Devices, Inc.
   */
+ /*
+ * This file has been ported from its original location to be included with
+ * the SparkFun ADIN1110 Arduino driver, its contents may have been changed
+ * from its original form.
+*/
+
 
 #include "hal.h"
 

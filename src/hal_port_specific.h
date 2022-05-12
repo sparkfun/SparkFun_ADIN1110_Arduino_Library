@@ -8,6 +8,12 @@
  *
  *---------------------------------------------------------------------------
  */
+/*
+ * This file has been ported from its original location to be included with
+ * the SparkFun ADIN1110 Arduino driver, its contents may have been changed
+ * from its original form.
+*/
+
 
 #ifndef HAL_PORT_SPECIFIC_H
 #define HAL_PORT_SPECIFIC_H

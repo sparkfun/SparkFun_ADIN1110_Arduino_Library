@@ -1,7 +1,13 @@
+/*
+* This code is released under the [MIT License](http://opensource.org/licenses/MIT).
+* Please review the LICENSE.md file included with this example. If you have any questions 
+* or concerns with licensing, please contact techsupport@sparkfun.com.
+* Distributed as-is; no warranty is given.
+*/
+
 #include "sfe_spe_advanced.h"
 
 const int ADIN1110_INIT_ITER = 5;
-/*-------------------------------- Device Status ------------------------*/
 
 adi_eth_Result_e sfe_spe_advanced::begin(uint8_t cs_pin)
 {

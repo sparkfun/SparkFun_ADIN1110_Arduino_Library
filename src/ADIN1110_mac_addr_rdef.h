@@ -11,6 +11,11 @@
 
      This file was auto-generated. Do not make local changes to this file.
    ================================================================================ */
+/*
+ * This file has been ported from its original location to be included with
+ * the SparkFun ADIN1110 Arduino driver, its contents may have been changed
+ * from its original form.
+*/
 
 #ifndef ADIN1110_MAC_ADDR_RDEF_H
 #define ADIN1110_MAC_ADDR_RDEF_H

@@ -8,6 +8,12 @@
  *
  *---------------------------------------------------------------------------
  */
+/*
+ * This file has been ported from its original location to be included with
+ * the SparkFun ADIN1110 Arduino driver, its contents may have been changed
+ * from its original form.
+*/
+
 
 #ifndef BOARDSUPPORT_H
 #define BOARDSUPPORT_H
@@ -16,9 +22,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-// #define DEFAULT_ETH_INT_Pin 4
-// #define DEFAULT_ETH_RESET_Pin 42
-// #define ETH_SPI_CS_Pin PIN_SPI_SS
 
 #if defined(ARDUINO_APOLLO3_SFE_ARTEMIS_MM_PB)
 #define DEFAULT_ETH_INT_Pin D0
