@@ -1,10 +1,7 @@
 SparkFun ADIN1110 Arduino Library
 ========================================
-
-[![SparkFun Single Pair Ethernet Function Board](https://cdn.sparkfun.com//assets/parts/1/8/6/4/9/19038-SparkFun_MicroMod_Single_Pair_Ethernet_Function_Board_-_ADIN1110-01.jpg)](https://www.sparkfun.com/products/19038)
-
-[![SparkFun Single Pair Ethernet Kit](https://cdn.sparkfun.com//assets/parts/1/9/2/9/9/19628-SparkFun_MicroMod_Single_Pair_Ethernet_Kit-01.jpg)](https://www.sparkfun.com/products/19628)
-
+|[![SparkFun Single Pair Ethernet Function Board](https://cdn.sparkfun.com//assets/parts/1/8/6/4/9/19038-SparkFun_MicroMod_Single_Pair_Ethernet_Function_Board_-_ADIN1110-01.jpg)](https://www.sparkfun.com/products/19038) | [![SparkFun Single Pair Ethernet Kit](https://cdn.sparkfun.com//assets/parts/1/9/2/9/9/19628-SparkFun_MicroMod_Single_Pair_Ethernet_Kit-01.jpg)](https://www.sparkfun.com/products/19628) |
+|---|---|
 
 This library allows the user to send and recieve data using single pair ethernet. 
 
