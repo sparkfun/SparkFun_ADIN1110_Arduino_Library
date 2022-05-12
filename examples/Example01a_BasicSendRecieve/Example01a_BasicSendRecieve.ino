@@ -20,9 +20,8 @@ char outputString[NUM_MSGS][MAX_MSG_SIZE] = {
     "If more performance is required, or you would like more control over memory, try the sfe_spe_advanced class"
 };
 
-static void rxCallback(uint8_t * data, uint16_t dataLen, uint8_t * senderMac)
+static void rxCallback(byte * data, int dataLen, byte * senderMac)
 {
-
     Serial.print("Recieved:\t");
     Serial.println((char *)data); //This is ok since we know they are all null terminated strings
     if(!adin1110.indenticalMacs(senderMac, destinationMAC))

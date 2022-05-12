@@ -59,9 +59,9 @@ public:
     bool    begin                   (uint8_t * mac, uint8_t cs_pin = DEFAULT_ETH_SPI_CS_Pin);
     bool    begin                   (uint8_t * mac, uint8_t status, uint8_t interrupt, uint8_t reset, uint8_t chip_select);
     
-    bool    sendData                (uint8_t *data, uint16_t dataLen, uint8_t *destMac);
-    bool    sendData                (uint8_t *data, uint16_t dataLen);
-    uint16_t getRxData              (uint8_t *data, uint16_t dataLen, uint8_t *senderMac);
+    bool    sendData                (uint8_t *data, int dataLen, uint8_t *destMac);
+    bool    sendData                (uint8_t *data, int dataLen);
+    int     getRxData               (uint8_t *data, int dataLen, uint8_t *senderMac);
     bool    getRxAvailable          ();
 
     void setMac                     (uint8_t * mac);
@@ -69,12 +69,12 @@ public:
     void setDestMac                 (uint8_t * mac);
     bool indenticalMacs             (uint8_t * mac1, uint8_t * mac2);
 
-    void setRxCallback              (void (*cbFunc)(uint8_t *, uint16_t, uint8_t*));
+    void setRxCallback              (void (*cbFunc)(uint8_t *, int, uint8_t*));
     void setLinkCallback            (void (*cbFunc)(bool));
     bool getLinkStatus              (void);
 
     //User callbacks
-    void (*userRxCallback)(uint8_t * data, uint16_t dataLen, uint8_t *senderMac);
+    void (*userRxCallback)(uint8_t * data, int dataLen, uint8_t *senderMac);
     void (*userLinkCallback)(bool connected);
     
     //static functions available to pass to underlying C driver, will regain context and call appropriate member function 

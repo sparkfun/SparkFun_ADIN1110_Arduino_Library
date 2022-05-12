@@ -13,7 +13,7 @@ unsigned long lastBlink = 0;
 
 byte deviceMAC[6] = {0x00, 0xE0, 0x22, 0xFE, 0xDA, 0xCA};
 
-static void rxCallback(uint8_t * data, uint16_t dataLen, uint8_t * senderMAC)
+static void rxCallback(byte * data, int dataLen, byte * senderMAC)
 {
     JSONVar BMEData = JSON.parse((char *)data);
     memset(display_text, '\0', MAX_CHARS_DISPLAY+1);
@@ -78,5 +78,5 @@ void loop() {
         lcd.write((byte *)&display_text[n], output_size);
         display_updated = false;
     }
-     delay(5);
+    delay(5);
 }

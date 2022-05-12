@@ -170,12 +170,12 @@ adi_eth_Result_e SinglePairEth::enableDefaultBehavior()
     return result;
 }
 
-bool SinglePairEth::sendData(uint8_t *data, uint16_t dataLen)
+bool SinglePairEth::sendData(uint8_t *data, int dataLen)
 {
     return sendData(data, dataLen, destMacAddr); //User default destination address
 }
    
-bool SinglePairEth::sendData(uint8_t *data, uint16_t dataLen, uint8_t * destMac)
+bool SinglePairEth::sendData(uint8_t *data, int dataLen, uint8_t * destMac)
 {
     adi_eth_Result_e result;
 
@@ -183,7 +183,7 @@ bool SinglePairEth::sendData(uint8_t *data, uint16_t dataLen, uint8_t * destMac)
     {
         return false;
     }
-    uint16_t transmitLength = 0;
+    int transmitLength = 0;
 
     //Build ethernet frame header
     memcpy(&txBuf[txBufIdx][transmitLength], destMac, kMacSize);  //Copy dest mac address
@@ -221,7 +221,7 @@ bool SinglePairEth::sendData(uint8_t *data, uint16_t dataLen, uint8_t * destMac)
 
     return (result == ADI_ETH_SUCCESS);
 }
-uint16_t SinglePairEth::getRxData(uint8_t *data, uint16_t dataLen, uint8_t *senderMac)
+int SinglePairEth::getRxData(uint8_t *data, int dataLen, uint8_t *senderMac)
 {
     bool rxDataAvailable = false;
     for(int i = 0; i < kNumBufs; i++)
@@ -235,7 +235,7 @@ uint16_t SinglePairEth::getRxData(uint8_t *data, uint16_t dataLen, uint8_t *send
     }
     if(rxDataAvailable)
     {
-        uint16_t cpyLen = rxBufDesc[rxBufIdx].trxSize - kFrameHeaderSize;
+        int cpyLen = rxBufDesc[rxBufIdx].trxSize - kFrameHeaderSize;
         cpyLen = (cpyLen < dataLen) ? cpyLen : dataLen;
         memcpy(senderMac, (char *)&(rxBufDesc[rxBufIdx].pBuf[kMacSize]), kMacSize); //second set of 6 bytes are senders MAC address
         memcpy(data, (char *)&(rxBufDesc[rxBufIdx].pBuf[kFrameHeaderSize]), cpyLen); //data starts 14 bytes in, after the frame header
@@ -289,7 +289,7 @@ bool SinglePairEth::indenticalMacs(uint8_t * mac1, uint8_t * mac2)
             (mac1[5] == mac2[5]) );
 }
 
-void SinglePairEth::setRxCallback( void (*cbFunc)(uint8_t *, uint16_t, uint8_t *) )
+void SinglePairEth::setRxCallback( void (*cbFunc)(uint8_t *, int, uint8_t *) )
 {
     userRxCallback = cbFunc;
 }
