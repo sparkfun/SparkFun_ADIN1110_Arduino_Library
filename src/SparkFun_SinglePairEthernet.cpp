@@ -1,18 +1,11 @@
-#include "Sparkfun_SinglePairEth.h"
-
-
-//Map between device handles and class instances to allow the static (c function pointer compatible)
-//functions to there respective non-static member functions
-std::map<adin1110_DeviceHandle_t, SinglePairEth *> SinglePairEth::devices;
+#include "SparkFun_SinglePairEthernet.h"
 
 //The next three function are static member functions. Static member functions are needed to get a function
 //pointer that we can shove into the C function that attaches the interrupt in the driver.
-//The devices map is used to locate the appropriate object to call the desired non-static callback member
-//This is a bit of a hack, but it is the best I could come up with
 void SinglePairEth::linkCallback_C_Compatible(void *pCBParam, uint32_t Event, void *pArg)
 {
     adin1110_DeviceHandle_t device = reinterpret_cast<adin1110_DeviceHandle_t>(pCBParam);
-    SinglePairEth * self = devices[device];
+    SinglePairEth * self = reinterpret_cast<SinglePairEth *>(adin1110_GetUserContext(device));
     if(self)
     {
         self->linkCallback(pCBParam, Event, pArg);
@@ -22,7 +15,7 @@ void SinglePairEth::linkCallback_C_Compatible(void *pCBParam, uint32_t Event, vo
 void SinglePairEth::txCallback_C_Compatible(void *pCBParam, uint32_t Event, void *pArg)
 {
     adin1110_DeviceHandle_t device = reinterpret_cast<adin1110_DeviceHandle_t>(pCBParam);
-    SinglePairEth * self = devices[device];
+    SinglePairEth * self = reinterpret_cast<SinglePairEth *>(adin1110_GetUserContext(device));
     if(self)
     {
         self->txCallback(pCBParam, Event, pArg);
@@ -31,13 +24,12 @@ void SinglePairEth::txCallback_C_Compatible(void *pCBParam, uint32_t Event, void
 void SinglePairEth::rxCallback_C_Compatible(void *pCBParam, uint32_t Event, void *pArg)
 {
     adin1110_DeviceHandle_t device = reinterpret_cast<adin1110_DeviceHandle_t>(pCBParam);
-    SinglePairEth * self = devices[device];
+    SinglePairEth * self = reinterpret_cast<SinglePairEth *>(adin1110_GetUserContext(device));
     if(self)
     {
         self->rxCallback(pCBParam, Event, pArg);
     }
 }
-
 
 void SinglePairEth::txCallback(void *pCBParam, uint32_t Event, void *pArg)
 {
@@ -53,12 +45,6 @@ void SinglePairEth::txCallback(void *pCBParam, uint32_t Event, void *pArg)
             break;
         }
     }
-    //Call user Callback
-    if (userTxCallback)
-    {
-        userTxCallback();
-    }
-
 }
 
 void SinglePairEth::rxCallback(void *pCBParam, uint32_t Event, void *pArg)
@@ -75,10 +61,11 @@ void SinglePairEth::rxCallback(void *pCBParam, uint32_t Event, void *pArg)
             break;
         }
     }
+
     //Call user Callback
     if (userRxCallback && (pRxBufDesc->trxSize > kFrameHeaderSize) )
     {
-        userRxCallback(&pRxBufDesc->pBuf[kFrameHeaderSize], (pRxBufDesc->trxSize - kFrameHeaderSize));
+        userRxCallback(&pRxBufDesc->pBuf[kFrameHeaderSize], (pRxBufDesc->trxSize - kFrameHeaderSize), &pRxBufDesc->pBuf[kMacSize] );
         submitRxBuffer(pRxBufDesc);
         rxBufAvailable[i] = false;
     }
@@ -90,37 +77,46 @@ void SinglePairEth::linkCallback(void *pCBParam, uint32_t Event, void *pArg)
     //call user callback
     if (userLinkCallback)
     {
-        userLinkCallback(linkStatus);
+        
+        userLinkCallback(linkStatus == ADI_ETH_LINK_STATUS_UP);
     }
 }
 
-adi_eth_Result_e SinglePairEth::begin(uint8_t cs_pin)
+bool SinglePairEth::begin(uint8_t *mac, uint8_t cs_pin)
 {
     adi_eth_Result_e result;
 
-    result = SinglePairEth_Raw::begin(cs_pin);
-    devices[hDevice] = this;
+    if(mac)
+    {
+        setMac(mac);
+    }
+    result = sfe_spe_advanced::begin(cs_pin);
+    setUserContext((void *)this);
     if(result == ADI_ETH_SUCCESS)
     {
         result =  enableDefaultBehavior();
     }
 
-    return result;
+    return (result == ADI_ETH_SUCCESS);
 
 }
 
-adi_eth_Result_e SinglePairEth::begin(uint8_t status, uint8_t interrupt, uint8_t reset, uint8_t chip_select)
+bool SinglePairEth::begin(uint8_t *mac, uint8_t status, uint8_t interrupt, uint8_t reset, uint8_t chip_select)
 {
     adi_eth_Result_e result;
 
-    result = SinglePairEth_Raw::begin(status, interrupt, reset, chip_select);
-    devices[hDevice] = this;
+    if(mac)
+    {
+        setMac(mac);
+    }
+    result = sfe_spe_advanced::begin(status, interrupt, reset, chip_select);
+    setUserContext((void *)this);
     if(result == ADI_ETH_SUCCESS)
     {
         result =  enableDefaultBehavior();
     }
 
-    return result;
+    return (result == ADI_ETH_SUCCESS);
 }
 
 adi_eth_Result_e SinglePairEth::enableDefaultBehavior()
@@ -130,12 +126,7 @@ adi_eth_Result_e SinglePairEth::enableDefaultBehavior()
 
     if(result == ADI_ETH_SUCCESS)
     {
-        result = addAddressFilter(&macAddr[0][0], NULL, 0);
-    }
-
-    if(result == ADI_ETH_SUCCESS)
-    {
-        result = addAddressFilter(&macAddr[1][0], NULL, 0);
+        result = addAddressFilter(macAddr, NULL, 0);
     }
 
     if(result == ADI_ETH_SUCCESS)
@@ -146,16 +137,7 @@ adi_eth_Result_e SinglePairEth::enableDefaultBehavior()
     if(result == ADI_ETH_SUCCESS)
     {
         result = registerCallback(linkCallback_C_Compatible, ADI_MAC_EVT_LINK_CHANGE);
-        //Other stuff I was trying, delete before release
-        // adi_eth_Callback_t cb = [obj=this](void *pCBParam, uint32_t Event, void *pArg) {
-        //     obj->linkCallback(pCBParam, Event, pArg);
-        // };
-        // result = registerCallback(cb, ADI_MAC_EVT_LINK_CHANGE);
-        // auto cpp_fun = std::bind(&SinglePairEth::linkCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-        // auto callback = static_cast<adi_eth_Callback_t>(cpp_fun);
-        // registerCallback(callback, ADI_MAC_EVT_LINK_CHANGE);
-        //result = registerCallback((adi_eth_Callback_t)(std::bind(&SinglePairEth::linkCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)), ADI_MAC_EVT_LINK_CHANGE);
-    }
+     }
 
     for (uint32_t i = 0; i < kNumBufs; i++)
     {
@@ -182,23 +164,36 @@ adi_eth_Result_e SinglePairEth::enableDefaultBehavior()
     return result;
 }
 
-adi_eth_Result_e SinglePairEth::sendData(uint8_t *data, uint16_t dataLen)
+bool SinglePairEth::sendData(uint8_t *data, uint16_t dataLen)
+{
+    return sendData(data, dataLen, destMacAddr); //User default destination address
+}
+   
+bool SinglePairEth::sendData(uint8_t *data, uint16_t dataLen, uint8_t * destMac)
 {
     adi_eth_Result_e result;
 
-    if(dataLen + kFrameHeaderSize > kFrameSize)
+    if( (dataLen + kFrameHeaderSize > kFrameSize) || (destMac == NULL) )
     {
-        return ADI_ETH_INVALID_PARAM;
+        return false;
     }
+    uint16_t transmitLength = 0;
 
-    memcpy(&txBuf[txBufIdx][0], ethFrameHeader, kFrameHeaderSize);
-    memcpy(&txBuf[txBufIdx][kFrameHeaderSize], data, dataLen);
-    uint16_t trasmitLength = kFrameHeaderSize + dataLen;
-    //pad with 0's to mininmum transmit length
-    while(trasmitLength < kMinPayloadSize) txBuf[txBufIdx][trasmitLength++] = 0;
+    //Build ethernet frame header
+    memcpy(&txBuf[txBufIdx][transmitLength], destMac, kMacSize);  //Copy dest mac address
+    transmitLength += kMacSize;
+    memcpy(&txBuf[txBufIdx][transmitLength], macAddr, kMacSize);  //Copy own(source) mac address
+    transmitLength += kMacSize;
+    txBuf[txBufIdx][transmitLength++] = kEtherTypeIPv4_b0;
+    txBuf[txBufIdx][transmitLength++] = kEtherTypeIPv4_b1;
+    //Insert provided data
+    memcpy(&txBuf[txBufIdx][transmitLength], data, dataLen);
+    transmitLength += dataLen;
+    //Pad with 0's to mininmum transmit length
+    while(transmitLength < kMinPayloadSize) txBuf[txBufIdx][transmitLength++] = 0;
 
     txBufDesc[txBufIdx].pBuf = &txBuf[txBufIdx][0];
-    txBufDesc[txBufIdx].trxSize = trasmitLength;
+    txBufDesc[txBufIdx].trxSize = transmitLength;
     txBufDesc[txBufIdx].bufSize = kMaxBufFrameSize;
     txBufDesc[txBufIdx].egressCapt = ADI_MAC_EGRESS_CAPTURE_NONE;
     txBufDesc[txBufIdx].cbFunc = txCallback_C_Compatible;
@@ -209,6 +204,7 @@ adi_eth_Result_e SinglePairEth::sendData(uint8_t *data, uint16_t dataLen)
     if (result == ADI_ETH_SUCCESS)
     {
         txBufIdx = (txBufIdx + 1) % kNumBufs;
+        setDestMac(destMac); //save most recently successfully sent mac address as the mac to use if none is provided in future calls
     }
     else
     {
@@ -216,9 +212,10 @@ adi_eth_Result_e SinglePairEth::sendData(uint8_t *data, uint16_t dataLen)
         /* may be full), then mark the buffer unavailable.  */
         txBufAvailable[txBufIdx] = true;
     }
-    return result;
+
+    return (result == ADI_ETH_SUCCESS);
 }
-uint16_t SinglePairEth::getRxData(uint8_t *data, uint16_t dataLen)
+uint16_t SinglePairEth::getRxData(uint8_t *data, uint16_t dataLen, uint8_t *senderMac)
 {
     bool rxDataAvailable = false;
     for(int i = 0; i < kNumBufs; i++)
@@ -234,7 +231,8 @@ uint16_t SinglePairEth::getRxData(uint8_t *data, uint16_t dataLen)
     {
         uint16_t cpyLen = rxBufDesc[rxBufIdx].trxSize - kFrameHeaderSize;
         cpyLen = (cpyLen < dataLen) ? cpyLen : dataLen;
-        memcpy(data, (char *)&(rxBufDesc[rxBufIdx].pBuf[kFrameHeaderSize]), cpyLen);
+        memcpy(senderMac, (char *)&(rxBufDesc[rxBufIdx].pBuf[kMacSize]), kMacSize); //second set of 6 bytes are senders MAC address
+        memcpy(data, (char *)&(rxBufDesc[rxBufIdx].pBuf[kFrameHeaderSize]), cpyLen); //data starts 14 bytes in, after the frame header
         submitRxBuffer(&rxBufDesc[rxBufIdx]);
         rxBufAvailable[rxBufIdx] = false;
         rxSinceLastCheck = false;
@@ -248,18 +246,54 @@ bool SinglePairEth::getRxAvailable()
     return rxSinceLastCheck;
 }
 
-adi_eth_Result_e SinglePairEth::setRxCallback( void (*cbFunc)(uint8_t *, uint16_t) )
+
+void SinglePairEth::setMac(uint8_t * mac)
+{
+    if(mac)
+    {
+        memcpy(macAddr, mac, kMacSize);
+    }
+}
+void SinglePairEth::getMac(uint8_t * mac)
+{
+    if(mac)
+    {
+        memcpy(mac, macAddr, kMacSize);
+    }
+}
+void SinglePairEth::setDestMac(uint8_t * mac)
+{
+    if(mac)
+    {
+        memcpy(mac, destMacAddr, kMacSize);
+    }  
+}
+
+bool SinglePairEth::indenticalMacs(uint8_t * mac1, uint8_t * mac2)
+{
+    if(!mac1 || !mac2)
+    {
+        return false;
+    }
+    return( (mac1[0] == mac2[0]) &&
+            (mac1[1] == mac2[1]) &&
+            (mac1[2] == mac2[2]) &&
+            (mac1[3] == mac2[3]) &&
+            (mac1[4] == mac2[4]) &&
+            (mac1[5] == mac2[5]) );
+}
+
+void SinglePairEth::setRxCallback( void (*cbFunc)(uint8_t *, uint16_t, uint8_t *) )
 {
     userRxCallback = cbFunc;
-    return ADI_ETH_SUCCESS;
 }
-adi_eth_Result_e SinglePairEth::setTxCallback( void (*cbFunc)() )
-{
-    userTxCallback = cbFunc;
-    return ADI_ETH_SUCCESS;
-}
-adi_eth_Result_e SinglePairEth::setLinkCallback( void (*cbFunc)(adi_eth_LinkStatus_e) )
+
+void SinglePairEth::setLinkCallback( void (*cbFunc)(bool) )
 {
     userLinkCallback = cbFunc;
-    return ADI_ETH_SUCCESS;
+}
+
+bool SinglePairEth::getLinkStatus(void)
+{
+    return (linkStatus == ADI_ETH_LINK_STATUS_UP);
 }

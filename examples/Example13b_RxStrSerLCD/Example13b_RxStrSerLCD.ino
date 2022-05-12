@@ -1,8 +1,5 @@
 //
-
-
-#include <stdbool.h>
-#include "Sparkfun_SinglePairEth_Raw.h"
+#include "sfe_spe_advanced.h"
 #include <Wire.h>
 #include <SerLCD.h>
 /* Extra 4 bytes for FCS and 2 bytes for the frame header */
@@ -27,7 +24,7 @@ uint8_t macAddr[2][6] = {
     {MAC_ADDR_1_0, MAC_ADDR_1_1, MAC_ADDR_1_2, MAC_ADDR_1_3, MAC_ADDR_1_4, MAC_ADDR_1_5},
 };
 
-SinglePairEth_Raw adin1110;
+sfe_spe_advanced adin1110;
 SerLCD lcd;
 
 /* Number of buffer descriptors to use for both Tx and Rx in this example */
@@ -94,12 +91,9 @@ void setup()
     adin1110_DeviceStruct_t dev;
     adin1110_DeviceHandle_t hDevice = &dev;
     uint32_t                heartbeatCheckTime = 0;
-    Wire.setSDA(4);
-    Wire.setSCL(5);
     Wire.begin();
     Wire.setClock(100000);
     lcd.begin(Wire); //Set up the LCD for I2C communication
-//    Wire.setClock(400000);
     lcd.clear(); //Clear the display - this moves the cursor to home position as well
     
     Serial.begin(115200);
@@ -107,7 +101,7 @@ void setup()
       ; // wait for serial port to connect. Needed for native USB port only
     }
     /****** System Init *****/
-        result = adin1110.begin(LED_BUILTIN, 6, 18, 21);
+        result = adin1110.begin();
     if(result != ADI_ETH_SUCCESS) Serial.println("No MACPHY device found");
     else Serial.println("Adin1110 found!");
 

@@ -9,8 +9,7 @@
  *
  *---------------------------------------------------------------------------
  */
-#include <stdbool.h>
-#include "Sparkfun_SinglePairEth_Raw.h"
+#include "sfe_spe_advanced.h"
 #include "SparkFunBME280.h"
 /* Extra 4 bytes for FCS and 2 bytes for the frame header */
 #define MAX_FRAME_BUF_SIZE  (MAX_FRAME_SIZE + 4 + 2)
@@ -44,7 +43,7 @@ uint8_t frame_header[FRAME_HEADER_SIZE] =
       0x08, 0x00,
 };
 
-SinglePairEth_Raw adin1110;
+sfe_spe_advanced adin1110;
 BME280 mySensor;
 
 

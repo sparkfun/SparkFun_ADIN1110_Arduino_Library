@@ -8,8 +8,7 @@
  *
  *---------------------------------------------------------------------------
  */
-#include <stdbool.h>
-#include "Sparkfun_SinglePairEth_Raw.h"
+#include "sfe_spe_advanced.h"
 /* Extra 4 bytes for FCS and 2 bytes for the frame header */
 #define MAX_FRAME_BUF_SIZE  (MAX_FRAME_SIZE + 4 + 2)
 
@@ -34,7 +33,7 @@ uint8_t macAddr[2][6] = {
     {MAC_ADDR_1_0, MAC_ADDR_1_1, MAC_ADDR_1_2, MAC_ADDR_1_3, MAC_ADDR_1_4, MAC_ADDR_1_5},
 };
 
-SinglePairEth_Raw adin1110;
+sfe_spe_advanced adin1110;
 
 /* Number of buffer descriptors to use for both Tx and Rx in this example */
 #define BUFF_DESC_COUNT     (6)

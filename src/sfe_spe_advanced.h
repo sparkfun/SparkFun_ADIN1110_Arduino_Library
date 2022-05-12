@@ -10,7 +10,7 @@
 #endif
 
 
-class SinglePairEth_Raw
+class sfe_spe_advanced
 {
 private:
     uint8_t devMem[ADIN1110_DEVICE_SIZE];

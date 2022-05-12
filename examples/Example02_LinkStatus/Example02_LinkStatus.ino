@@ -1,40 +1,31 @@
-#include "Sparkfun_SinglePairEth.h"
+#include "SparkFun_SinglePairEthernet.h"
 
 SinglePairEth adin1110;
 
+byte deviceMAC[6] = {0x00, 0xE0, 0x22, 0xFE, 0xDA, 0xC9};
+
 //Attached in set-up to be called when the link status changes, parameter is current link status
-void linkCallback(adi_eth_LinkStatus_e linkStatus)
+void linkCallback(bool linkStatus)
 {
-  if(linkStatus == ADI_ETH_LINK_STATUS_UP)
-  {
-    digitalWrite(LED_BUILTIN, HIGH);
-  }
-  else
-  {
-    digitalWrite(LED_BUILTIN, LOW);
-  }
+    digitalWrite(LED_BUILTIN, linkStatus);
 }
 
 void setup() 
 {
-    adi_eth_Result_e        result;
     Serial.begin(115200);
-    while (!Serial);
+    while(!Serial);
 
     /* Start up adin1110 */
-    result = adin1110.begin();
-    while (result != ADI_ETH_SUCCESS) 
+    if (!adin1110.begin(deviceMAC)) 
     {
-      Serial.print("Failed to connect to ADIN1110 MACPHY. Error Code: ");
-      Serial.print(result);
-      while(1);      
+      Serial.print("Failed to connect to ADIN1110 MACPHY. Make sure board is connected and pins are defined for target.");
+      while(1); //If we can't connect just stop here  
     }
     
     Serial.println("Connected to ADIN1110 MACPHY");
 
     /* Set up callback */
     adin1110.setLinkCallback(linkCallback);
-
 }
 
 void loop() {
@@ -42,5 +33,15 @@ void loop() {
       Connect and disconnect to a board running example 01b, or another board running this example
       to see the onboard led change when the link status changes.
       No logic needed here.
+  */
+  /* If not using a callback you could need to do the following to get the same functionality*/
+  /*
+  static bool linkStatus = false;
+  bool currentStatus = adin1110.getLinkStatus();
+  if(linkStatus != currentStatus)
+  {
+    linkStatus = currentStatus;
+    digitalWrite(LED_BUILTIN, linkStatus);
+  }
   */
 }
