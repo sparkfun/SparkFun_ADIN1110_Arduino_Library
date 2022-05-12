@@ -15,6 +15,7 @@ void setup()
     Serial.begin(115200);
     while(!Serial);
 
+    Serial.println("Single Pair Ethernet - Example 2 Link Status");
     /* Start up adin1110 */
     if (!adin1110.begin(deviceMAC)) 
     {

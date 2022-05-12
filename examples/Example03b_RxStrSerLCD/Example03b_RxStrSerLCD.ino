@@ -39,6 +39,7 @@ void setup()
     Serial.begin(115200);
     while(!Serial);
 
+    Serial.println("Single Pair Ethernet - Example 3b Recieve String from 3a and Display on SerLCD");
     /* Start up adin1110 */
     if(!adin1110.begin(deviceMAC)) 
     {
