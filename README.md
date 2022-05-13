@@ -26,8 +26,11 @@ If more control over the ADIN1110 is desired, the advanced class is provided.
 * [COM-19038](https://www.sparkfun.com/products/19038)- Function board sold by itself
 * [KIT-19628](https://www.sparkfun.com/products/19628)- Kit with 2 main board, 2 function boards, 2 processor boards, connecting cable, and screwdriver
 
-License Information
--------------------
+## Version History
+
+* [v1.0.0](https://github.com/sparkfun/SparkFun_ADIN1110_Arduino_Library/commits/v1.0.0) -Initial public release.
+
+## License Information
 
 This product is _**open source**_! 
 
