@@ -1,6 +1,6 @@
 #include "SparkFun_SinglePairEthernet.h"
 
-SinglePairEth adin1110;
+SinglePairEthernet adin1110;
 
 byte deviceMAC[6] = {0x00, 0xE0, 0x22, 0xFE, 0xDA, 0xC9};
 

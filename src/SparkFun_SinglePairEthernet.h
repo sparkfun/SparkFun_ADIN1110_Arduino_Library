@@ -23,34 +23,34 @@
 #define MAC_ADDR_1_4        (0xDA)
 #define MAC_ADDR_1_5        (0xCA)
 
-const int kNumBufs = 4;
-const int kFrameSize = 1518;
+const int SPE_NUM_BUFS = 4;
+const int SPE_FRAME_SIZE = 1518;
 /* Extra 4 bytes for FCS and 2 bytes for the frame header */
-const int kMaxBufFrameSize = (kFrameSize + 4 + 2);
-const int kMinPayloadSize = (46);
+const int SPE_MAX_BUF_FRAME_SIZE = (SPE_FRAME_SIZE + 4 + 2);
+const int SPE_MIN_PAYLOAD_SIZE = (46);
 
-const int kMacSize = 6;
-const int kFrameHeaderSize = (2*kMacSize + 2);
-const int kEtherTypeIPv4_b0 = 0x80;
-const int kEtherTypeIPv4_b1 = 0x00;
+const int SPE_MAC_SIZE = 6;
+const int SPE_FRAME_HEADER_SIZE = (2*SPE_MAC_SIZE + 2);
+const int SPE_ETHERTYPE_IPV4_B0 = 0x80;
+const int SPE_ETHERTYPE_IPV4_B1 = 0x00;
 
-class SinglePairEth : public sfe_spe_advanced
+class SinglePairEthernet : public sfe_spe_advanced
 {
 private:
     adi_eth_Result_e    enableDefaultBehavior   (); 
 
-    uint8_t rxBuf[kNumBufs][kMaxBufFrameSize] HAL_ALIGNED_ATTRIBUTE(4);
-    uint8_t txBuf[kNumBufs][kMaxBufFrameSize] HAL_ALIGNED_ATTRIBUTE(4);
-    adi_eth_BufDesc_t rxBufDesc[kNumBufs];
-    adi_eth_BufDesc_t txBufDesc[kNumBufs];
-    bool txBufAvailable[kNumBufs];
-    bool rxBufAvailable[kNumBufs];
+    uint8_t rxBuf[SPE_NUM_BUFS][SPE_MAX_BUF_FRAME_SIZE] HAL_ALIGNED_ATTRIBUTE(4);
+    uint8_t txBuf[SPE_NUM_BUFS][SPE_MAX_BUF_FRAME_SIZE] HAL_ALIGNED_ATTRIBUTE(4);
+    adi_eth_BufDesc_t rxBufDesc[SPE_NUM_BUFS];
+    adi_eth_BufDesc_t txBufDesc[SPE_NUM_BUFS];
+    bool txBufAvailable[SPE_NUM_BUFS];
+    bool rxBufAvailable[SPE_NUM_BUFS];
     uint32_t txBufIdx;
     uint32_t rxBufIdx;
     bool rxSinceLastCheck;
 
-    uint8_t macAddr[kMacSize] = {MAC_ADDR_0_0, MAC_ADDR_0_1, MAC_ADDR_0_2, MAC_ADDR_0_3, MAC_ADDR_0_4, MAC_ADDR_0_5};
-    uint8_t destMacAddr[kMacSize] = {MAC_ADDR_1_0, MAC_ADDR_1_1, MAC_ADDR_1_2, MAC_ADDR_1_3, MAC_ADDR_1_4, MAC_ADDR_1_5};
+    uint8_t macAddr[SPE_MAC_SIZE] = {MAC_ADDR_0_0, MAC_ADDR_0_1, MAC_ADDR_0_2, MAC_ADDR_0_3, MAC_ADDR_0_4, MAC_ADDR_0_5};
+    uint8_t destMacAddr[SPE_MAC_SIZE] = {MAC_ADDR_1_0, MAC_ADDR_1_1, MAC_ADDR_1_2, MAC_ADDR_1_3, MAC_ADDR_1_4, MAC_ADDR_1_5};
 
     volatile adi_eth_LinkStatus_e    linkStatus;
 
@@ -82,7 +82,7 @@ public:
     static void         rxCallback_C_Compatible (void *pCBParam, uint32_t Event, void *pArg);
     static void         linkCallback_C_Compatible(void *pCBParam, uint32_t Event, void *pArg);
 
-    //functions called be driver on successful rx, tx, or link status chage.
+    //functions called on successful rx, tx, or link status chage.
     void                txCallback              (void *pCBParam, uint32_t Event, void *pArg);
     void                rxCallback              (void *pCBParam, uint32_t Event, void *pArg);
     void                linkCallback            (void *pCBParam, uint32_t Event, void *pArg);

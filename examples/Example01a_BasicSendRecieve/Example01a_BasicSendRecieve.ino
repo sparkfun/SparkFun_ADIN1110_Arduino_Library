@@ -1,6 +1,6 @@
 #include "SparkFun_SinglePairEthernet.h"
 
-SinglePairEth adin1110;
+SinglePairEthernet adin1110;
 
 int msg = 0;
 const int NUM_MSGS = 8;
@@ -15,7 +15,7 @@ char outputString[NUM_MSGS][MAX_MSG_SIZE] = {
     "User can define their own behavior for when data is recieved by defining their own rxCallback",
     "The conterpart to this example demonstrates how to access recieved data if using callback is not desired",
     "This example uses Serial.println in the callback, this is may not be best practice since it can happen in an interrupt",
-    "Basic functionality of sending and recieving data is provided by the SinglePairEth class",
+    "Basic functionality of sending and recieving data is provided by the SinglePairEthernet class",
     "Messages are copied to memory internal to the created object",
     "If more performance is required, or you would like more control over memory, try the sfe_spe_advanced class"
 };

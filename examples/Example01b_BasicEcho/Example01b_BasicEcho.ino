@@ -1,6 +1,6 @@
 #include "SparkFun_SinglePairEthernet.h"
 
-SinglePairEth adin1110;
+SinglePairEthernet adin1110;
 
 unsigned long lastBlink = 0;
 

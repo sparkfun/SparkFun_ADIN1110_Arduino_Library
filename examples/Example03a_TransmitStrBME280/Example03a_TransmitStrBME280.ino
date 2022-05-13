@@ -2,7 +2,7 @@
 #include "SparkFunBME280.h"
 #include <Arduino_JSON.h>
 
-SinglePairEth adin1110;
+SinglePairEthernet adin1110;
 BME280 mySensor;
 
 JSONVar lastBMEData;

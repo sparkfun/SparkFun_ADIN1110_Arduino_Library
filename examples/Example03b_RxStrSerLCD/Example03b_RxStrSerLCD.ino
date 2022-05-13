@@ -2,7 +2,7 @@
 #include <Arduino_JSON.h>
 #include <SerLCD.h>
 
-SinglePairEth adin1110;
+SinglePairEthernet adin1110;
 SerLCD lcd;
 
 const int MAX_CHARS_DISPLAY = 4*20;
