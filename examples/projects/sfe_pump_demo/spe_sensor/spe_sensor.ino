@@ -202,7 +202,7 @@ static bool takeDataSample(String& pump01Results, String &pump02Results){
     
         // Normalize the X-Z data
 
-        xzMagSensor01 = sqrtf(myData.xData * myData.xData + myData.zData * myData.zData);
+        xzMagSensor01 = sqrtf(pump01Data.xData * pump01Data.xData + pump01Data.zData * pump01Data.zData);
 
         pump01IsOn = (xzMagSensor01 > 0.03 || xzMagSensor01 < 0.0200 );
 
