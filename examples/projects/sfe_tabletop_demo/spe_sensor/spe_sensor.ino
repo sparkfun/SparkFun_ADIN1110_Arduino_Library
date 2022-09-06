@@ -41,8 +41,7 @@
 #include <math.h>
 #include <ArduinoJson.h>
 
-#include <SparkFun_Qwiic_OLED.h>
-#include <res/qw_fnt_8x16.h>
+
 #include <SparkFun_SinglePairEthernet.h>
 #include <SparkFun_Qwiic_KX13X.h>
 
@@ -56,9 +55,6 @@ SinglePairEthernet speDevice;
 // Our sensor objects
 QwiicKX134 kx134Sensor01;
 
-// Our OLED display unit. 
-QwiicNarrowOLED myOLED;
-
 // sensor flags
 bool bSensor01Connected = false;
 
@@ -69,7 +65,7 @@ bool bSensor01Connected = false;
 const char * SensorID = "BasementPumps";
 const char * machineChatURL = "/v1/data/mc";
 
-#define SAMPLE_PERIOD_MS  2000
+#define SAMPLE_PERIOD_MS  3000
 
 static uint32_t lastSampleTicks = 0;
 
@@ -78,6 +74,39 @@ bool pump01LastDetect = false;
 
 bool pump01State = false;
 
+float lastSample[3]={0.0};
+
+#define LCD_ADDRESS 0x72
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// Write to LCD
+
+void writeToLCD(const char *text){
+
+  Wire.beginTransmission(LCD_ADDRESS); // transmit to device #1
+
+  Wire.write('|'); //Put LCD into setting mode
+  Wire.write('-'); //Send clear display command
+
+  Wire.print(text);
+
+  Wire.endTransmission(); //Stop I2C transmission
+
+}
+void setLCDColor(uint8_t r, uint8_t g, uint8_t b){
+
+  Wire.beginTransmission(LCD_ADDRESS); // transmit to device #1
+  //Wire.write('|'); //Put LCD into setting mode
+  //Wire.write('-'); //Send clear display command  
+  Wire.write('|'); //Put LCD into setting mode
+  Wire.write('+'); //Send the Set RGB command
+  Wire.write(r); //Send the red value
+  Wire.write(g); //Send the green value
+  Wire.write(b); //Send the blue value
+
+  Wire.endTransmission(); //Stop I2C transmission
+
+}
 ///////////////////////////////////////////////////////////////////////////////////////////
 // setup()
 
@@ -110,15 +139,6 @@ void setup()
         while(1);
     }
 
-    // Initalize the OLED device and related graphics system
-    if (myOLED.begin() == false)
-    {
-        Serial.println("OLED begin failed. Freezing...");
-        while (true)
-            ;
-    }
-    myOLED.setFont(QW_FONT_8X16);
-
     // Initialize our network connection
 
     if(!speDevice.begin(deviceMAC))
@@ -139,6 +159,8 @@ void setup()
     lastSampleTicks = millis() - SAMPLE_PERIOD_MS; // force a sample on first loop
 }
 
+#define VIBRATION_POINT .2
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 // takeDataSample()
 //
@@ -147,26 +169,34 @@ void setup()
 // Returns true on success, false of fialure.
 static bool takeDataSample(String& pump01Results){
 
-    float xzMagSensor01 = 0;
+    float accMag = 0;
 
     outputData pump01Data;
 
     bool pump01IsOn;
-
+    float dataDeltas[3];
 
     if (bSensor01Connected)
     {
         pump01Data = kx134Sensor01.getAccelData(); 
     
-        // Normalize the X-Z data
+        // change in accel from alast sample?
+        dataDeltas[0] = pump01Data.xData - lastSample[0];
+        dataDeltas[1] = pump01Data.yData - lastSample[1];
+        dataDeltas[2] = pump01Data.zData - lastSample[2];                
 
-        xzMagSensor01 = sqrtf(pump01Data.xData * pump01Data.xData + pump01Data.zData * pump01Data.zData);
+        lastSample[0] = pump01Data.xData;
+        lastSample[1] = pump01Data.yData;
+        lastSample[2] = pump01Data.zData;                
+        // size of delta
+        accMag =  sqrtf(dataDeltas[0] * dataDeltas[0] + dataDeltas[1] * dataDeltas[1] + dataDeltas[2] * dataDeltas[2] );
 
-        pump01IsOn = (xzMagSensor01 > 0.03 || xzMagSensor01 < 0.0200 );
+        Serial.println(accMag);
+        pump01IsOn = (accMag > VIBRATION_POINT);
 
     }
 
-
+    Serial.println(pump01IsOn);
     // If the last detect and this detect are the same - change state. Helps deal with single sample outliners
     if(pump01LastDetect == pump01IsOn)
         pump01State = pump01IsOn;
@@ -175,27 +205,27 @@ static bool takeDataSample(String& pump01Results){
 
 
     // Output value to Screen
-    myOLED.erase();
-    myOLED.setCursor(0,0);
-    myOLED.print("Pump 01:");
+   // myOLED.erase();
+   // myOLED.setCursor(0,0);
+   // myOLED.print("Pump 01:");
     //myOLED.print(xzMag, 4);
-    myOLED.println( pump01State ? "-ON-" : "<OFF>");
+   // myOLED.println( pump01State ? "-ON-" : "<OFF>");
 
-
-    myOLED.display();
+    writeToLCD(pump01State ? "Vibration" : "No Vibration");
+    if(pump01State)
+        setLCDColor(255, 0 ,0);
+    else
+        setLCDColor(0, 255, 0);
+   // myOLED.display();
 
     // Package up the values in json doc -- follow schema outlined by machine chat
 
     StaticJsonDocument<256> jsonDoc;
 
-    JsonObject jsonContext = jsonDoc.createNestedObject("context");
-
-    jsonContext["target_id"] = String("Pump01");
-    JsonObject jsonData = jsonDoc.createNestedObject("data");
-    jsonData["X"] = pump01Data.xData;
-    jsonData["Y"] = pump01Data.yData;
-    jsonData["Z"] = pump01Data.zData;        
-    jsonData["On"] = (int)pump01State;
+    jsonDoc["X"] = pump01Data.xData;
+    jsonDoc["Y"] = pump01Data.yData;
+    jsonDoc["Z"] = pump01Data.zData;        
+    jsonDoc["On"] = (int)pump01State;
 
     serializeJson(jsonDoc, pump01Results);
 

@@ -35,9 +35,11 @@
 
 */
 
+#include <Arduino.h>
+#include <Wire.h>
 #include <SparkFun_SinglePairEthernet.h>
-#include <Ethernet.h>
 #include <stdbool.h>
+#include <ArduinoJson.h>
 
 // Our SPE Device object
 SinglePairEthernet speDevice;
@@ -45,26 +47,39 @@ SinglePairEthernet speDevice;
 // Define a MAC address for the SPE connection
 byte speMAC[6] = {0x00, 0xE0, 0x22, 0xFE, 0xDA, 0xCA};
 
-////////////////////////////////////////////////////////
-// Ethernet Setup
-// Enter a MAC address for your controller below.
-// Newer Ethernet shields have a MAC address printed on a sticker on the shield
-byte ethernetMac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
-
-// Fallbacks - Set the static IP address to use if the DHCP fails to assign
-IPAddress ip(192, 168, 0, 177);
-IPAddress myDns(192, 168, 0, 1);
 
 
-IPAddress machineServerIP;
-EthernetClient ethernetClient;
+#define LCD_ADDRESS 0x72
 
-/////////////////////////////////////////
-// Our IoT Server info
+///////////////////////////////////////////////////////////////////////////////////////////
+// Write to LCD
 
-const int serverPort = 8100;
-const char *serverAddress = "10.7.2.21";
-const char *machineChatURL = "/v1/data/mc";
+void writeToLCD(const char *text){
+
+  Wire.beginTransmission(LCD_ADDRESS); // transmit to device #1
+
+  Wire.write('|'); //Put LCD into setting mode
+  Wire.write('-'); //Send clear display command
+
+  Wire.print(text);
+
+  Wire.endTransmission(); //Stop I2C transmission
+
+}
+void setLCDColor(uint8_t r, uint8_t g, uint8_t b){
+
+  Wire.beginTransmission(LCD_ADDRESS); // transmit to device #1
+  //Wire.write('|'); //Put LCD into setting mode
+  //Wire.write('-'); //Send clear display command  
+  Wire.write('|'); //Put LCD into setting mode
+  Wire.write('+'); //Send the Set RGB command
+  Wire.write(r); //Send the red value
+  Wire.write(g); //Send the green value
+  Wire.write(b); //Send the blue value
+
+  Wire.endTransmission(); //Stop I2C transmission
+
+}
 
 ////////////////////////////////////
 // Result data variables
@@ -119,46 +134,7 @@ bool setupSPE(void)
 
     return true;
 }
-///////////////////////////////////////////////////////////////////////////////////////////
-// setupEthernet()
-//
-// Function to setup the Ethernet device - returns true on success, false on error
-//
-// Note: The Ethernet Function board should be in Slot 1
-//
-bool setupEthernet(void)
-{
 
-    Ethernet.init(9); // rp2040 = ethernet in slot 1
-
-    // start the Ethernet connection:
-
-    if (Ethernet.begin(ethernetMac) == 0)
-    {
-        // Check for Ethernet hardware present
-        if (Ethernet.hardwareStatus() == EthernetNoHardware)
-        {
-            Serial.println("Ethernet board was not found.  Sorry, can't run without hardware. :(");
-            return false;
-        }
-        Ethernet.begin(ethernetMac, ip, myDns);
-    }
-    else
-    {
-        Serial.print("Ethernet - DHCP assigned IP ");
-        Serial.println(Ethernet.localIP());
-    }
-
-    // setup our server address
-    if (!machineServerIP.fromString(serverAddress))
-    {
-        Serial.println("ERROR - Invalid Server address.");
-        return false;
-    }
-
-    // If we are here, we're ready to rock!
-    return true;
-}
 ///////////////////////////////////////////////////////////////////////////////////////////
 // sendDatToServer()
 //
@@ -169,39 +145,24 @@ bool setupEthernet(void)
 //
 // Parameter:
 //      data       c-string     - the data sent to the IOT server. It a JSON format.
-bool sendDataToServer(char *data)
+bool updateDisplay(char *data)
 {
 
-    // Connect to the machine chat server
-    if (!ethernetClient.connect(machineServerIP, serverPort))
-    {
-        Serial.println("Error - Unable to connect to the IoT server");
+    StaticJsonDocument<256> jsonDoc;
+
+    DeserializationError error = deserializeJson(jsonDoc, data);
+
+    if(error)
         return false;
-    }
 
-    // send our data to the server via HTTP, with a JSON payload. 
+    bool pump01State = jsonDoc["On"] ? true : false;
 
-    char charBuffer[128];
-
-    // Write out our HTTP headers
-    snprintf(charBuffer, sizeof(charBuffer), "POST %s HTTP/1.1", machineChatURL);
-    ethernetClient.println(charBuffer);
-
-    snprintf(charBuffer, sizeof(charBuffer), "Host: %s:%d", serverAddress, serverPort);
-    ethernetClient.println(charBuffer);
-
-    ethernetClient.println(F("Content-Type: application/json"));
-    ethernetClient.println(F("Connection: close"));
-    ethernetClient.print(F("Content-Length: "));
-    ethernetClient.println(strlen(data));
-    ethernetClient.println();
-    ethernetClient.print(data);
-    ethernetClient.println();
-    ethernetClient.flush();
-
-    delay(200);  // let the device send the data
-
-    ethernetClient.stop();  // This transaction is done
+    Serial.println(pump01State);
+    writeToLCD(pump01State ? "Vibration" : "No Vibration");
+    if(pump01State)
+        setLCDColor(255, 0 ,0);
+    else
+        setLCDColor(0, 255, 0);
 
     return true; // SUCCESS!
 }
@@ -215,8 +176,11 @@ void setup()
     Serial.begin(115200);
 
     // Note: the rp2040 doesn't like this next statement 
-    //while (!Serial)
-        //;
+    while (!Serial)
+        ;
+
+    // Setup our sensors 
+    Wire.begin();
 
     // setup SPE
     if (!setupSPE())
@@ -226,12 +190,6 @@ void setup()
             ;
     }
 
-    if (!setupEthernet())
-    {
-        Serial.println("Unable to setup the Ethernet connection. Halting.");
-        while (true)
-            ;
-    }
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
 // loop()
@@ -244,21 +202,23 @@ void loop()
     //
     // Note: Data is added to dataReslts() in the SPE Rx callback 
     //
-
-    if( Ethernet.linkStatus() != LinkOFF)
+// are we connected to the network
+    if (!speDevice.getLinkStatus())
     {
-        // Loop over the recieved data list. Non-null entry indicates new data.
-        for(int i=0; i < DATA_BUFFER_LEN; i++ ){
+        Serial.println("Warning - No SPE connection.");
+        delay(2000); // take a little nap
+        return;
+    }
+    // Loop over the recieved data list. Non-null entry indicates new data.
+    for(int i=0; i < DATA_BUFFER_LEN; i++ ){
 
-            if(dataResults[i][0])  // Data?!
-            {
-                if (!sendDataToServer(dataResults[i]))
-                    Serial.println("Error - Failed to send data to IoT server");                
+        if(dataResults[i][0])  // Data?!
+        {
+            if (!updateDisplay(dataResults[i]))
+                Serial.println("Error - Failed to send data to IoT server");                
 
-                // clear out the current entry. 
-                memset(dataResults[i], '\0', DATA_BUFFER_LEN);
-            }
-
+            // clear out the current entry. 
+            memset(dataResults[i], '\0', DATA_BUFFER_LEN);
         }
 
     }
