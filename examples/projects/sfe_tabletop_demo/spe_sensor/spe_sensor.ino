@@ -65,7 +65,7 @@ bool bSensor01Connected = false;
 const char * SensorID = "BasementPumps";
 const char * machineChatURL = "/v1/data/mc";
 
-#define SAMPLE_PERIOD_MS  3000
+#define SAMPLE_PERIOD_MS  2000
 
 static uint32_t lastSampleTicks = 0;
 
@@ -259,5 +259,5 @@ void loop() {
         }
         lastSampleTicks = millis();
     }else
-        delay(500);
+        delay(200);
 }

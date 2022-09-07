@@ -222,5 +222,5 @@ void loop()
         }
 
     }
-    delay(500);
+    delay(200);
 }
