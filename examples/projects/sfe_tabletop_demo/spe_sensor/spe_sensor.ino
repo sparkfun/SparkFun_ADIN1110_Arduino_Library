@@ -65,7 +65,7 @@ bool bSensor01Connected = false;
 const char * SensorID = "BasementPumps";
 const char * machineChatURL = "/v1/data/mc";
 
-#define SAMPLE_PERIOD_MS  2000
+#define SAMPLE_PERIOD_MS  1000
 
 static uint32_t lastSampleTicks = 0;
 
@@ -180,14 +180,16 @@ static bool takeDataSample(String& pump01Results){
     {
         pump01Data = kx134Sensor01.getAccelData(); 
     
-        // change in accel from alast sample?
+        // change in accel from last sample?
         dataDeltas[0] = pump01Data.xData - lastSample[0];
         dataDeltas[1] = pump01Data.yData - lastSample[1];
         dataDeltas[2] = pump01Data.zData - lastSample[2];                
 
+        // stash this reading
         lastSample[0] = pump01Data.xData;
         lastSample[1] = pump01Data.yData;
-        lastSample[2] = pump01Data.zData;                
+        lastSample[2] = pump01Data.zData;
+
         // size of delta
         accMag =  sqrtf(dataDeltas[0] * dataDeltas[0] + dataDeltas[1] * dataDeltas[1] + dataDeltas[2] * dataDeltas[2] );
 
@@ -198,18 +200,10 @@ static bool takeDataSample(String& pump01Results){
 
     Serial.println(pump01IsOn);
     // If the last detect and this detect are the same - change state. Helps deal with single sample outliners
-    if(pump01LastDetect == pump01IsOn)
-        pump01State = pump01IsOn;
+    //if(pump01LastDetect == pump01IsOn)
+    pump01State = pump01IsOn;
 
-    pump01LastDetect  = pump01IsOn;
-
-
-    // Output value to Screen
-   // myOLED.erase();
-   // myOLED.setCursor(0,0);
-   // myOLED.print("Pump 01:");
-    //myOLED.print(xzMag, 4);
-   // myOLED.println( pump01State ? "-ON-" : "<OFF>");
+    //pump01LastDetect  = pump01IsOn;
 
     writeToLCD(pump01State ? "Vibration" : "No Vibration");
     if(pump01State)
