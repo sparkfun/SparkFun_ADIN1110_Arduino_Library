@@ -80,7 +80,7 @@ void BSP_enableInterrupts(void)
     #if defined(ARDUINO_ARCH_APOLLO3) || defined(ARDUINO_SPARKFUN_THINGPLUS_RP2040) || defined(ARDUINO_SPARKFUN_MICROMOD_RP2040) || defined(ARDUINO_MICROMOD_F405_DFU)
         //These architectures have problems with entering/exiting critical section so just don't do it
     #else
-        noInterrupts();
+        interrupts();
     #endif //defined(ARDUINO_ARCH_APOLLO3) || defined(ARDUINO_SPARKFUN_THINGPLUS_RP2040) || defined(ARDUINO_SPARKFUN_MICROMOD_RP2040) || defined(ARDUINO_MICROMOD_F405_DFU)
 }
 
