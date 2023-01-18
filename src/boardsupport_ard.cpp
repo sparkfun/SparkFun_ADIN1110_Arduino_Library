@@ -67,21 +67,21 @@ void BSP_getConfigPins(uint16_t *value) { /* This board has no config pins, so o
 
 void BSP_disableInterrupts(void)
 {
-    #if defined(ARDUINO_ARCH_APOLLO3) || defined(ARDUINO_SPARKFUN_THINGPLUS_RP2040) || defined(ARDUINO_SPARKFUN_MICROMOD_RP2040)
+    #if defined(ARDUINO_ARCH_APOLLO3) || defined(ARDUINO_SPARKFUN_THINGPLUS_RP2040) || defined(ARDUINO_SPARKFUN_MICROMOD_RP2040) || defined(ARDUINO_MICROMOD_F405_DFU)
         //These architectures have problems with entering/exiting critical section so just don't do it
     #else
         noInterrupts();
-    #endif //defined(ARDUINO_ARCH_APOLLO3) || defined(ARDUINO_SPARKFUN_THINGPLUS_RP2040) || defined(ARDUINO_SPARKFUN_MICROMOD_RP2040)
+    #endif //defined(ARDUINO_ARCH_APOLLO3) || defined(ARDUINO_SPARKFUN_THINGPLUS_RP2040) || defined(ARDUINO_SPARKFUN_MICROMOD_RP2040) || defined(ARDUINO_MICROMOD_F405_DFU)
 }
 
 
 void BSP_enableInterrupts(void)
 {
-    #if defined(ARDUINO_ARCH_APOLLO3) || defined(ARDUINO_SPARKFUN_THINGPLUS_RP2040) || defined(ARDUINO_SPARKFUN_MICROMOD_RP2040)
+    #if defined(ARDUINO_ARCH_APOLLO3) || defined(ARDUINO_SPARKFUN_THINGPLUS_RP2040) || defined(ARDUINO_SPARKFUN_MICROMOD_RP2040) || defined(ARDUINO_MICROMOD_F405_DFU)
         //These architectures have problems with entering/exiting critical section so just don't do it
     #else
-        noInterrupts();
-    #endif //defined(ARDUINO_ARCH_APOLLO3) || defined(ARDUINO_SPARKFUN_THINGPLUS_RP2040) || defined(ARDUINO_SPARKFUN_MICROMOD_RP2040)
+        interrupts();
+    #endif //defined(ARDUINO_ARCH_APOLLO3) || defined(ARDUINO_SPARKFUN_THINGPLUS_RP2040) || defined(ARDUINO_SPARKFUN_MICROMOD_RP2040) || defined(ARDUINO_MICROMOD_F405_DFU)
 }
 
 /*

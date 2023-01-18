@@ -47,6 +47,12 @@
 #define DEFAULT_ETH_SPI_CS_Pin 21
 #endif
 
+#if defined(ARDUINO_MICROMOD_F405_DFU)
+#define DEFAULT_ETH_INT_Pin PC0
+#define DEFAULT_ETH_RESET_Pin PA0
+#define DEFAULT_ETH_SPI_CS_Pin PC4
+#endif
+
 #if !defined(DEFAULT_ETH_INT_Pin)
   #pragma message("No DEFAULT_ETH_INT_Pin defined, please set in being function")
   #define DEFAULT_ETH_INT_Pin 0
