@@ -196,7 +196,7 @@ bool SinglePairEthernet::sendData(uint8_t *data, int dataLen, uint8_t * destMac)
     memcpy(&txBuf[txBufIdx][transmitLength], data, dataLen);
     transmitLength += dataLen;
     //Pad with 0's to mininmum transmit length
-    while(transmitLength < SPE_MIN_PAYLOAD_SIZE) txBuf[txBufIdx][transmitLength++] = 0;
+    while(transmitLength < SPE_FRAME_HEADER_SIZE + SPE_MIN_PAYLOAD_SIZE) txBuf[txBufIdx][transmitLength++] = 0;
 
     txBufDesc[txBufIdx].pBuf = &txBuf[txBufIdx][0];
     txBufDesc[txBufIdx].trxSize = transmitLength;
